@@ -1,167 +1,119 @@
-# Finding a Maximal Clique with Optimization Algorithms
+# Solving the Maximum Clique Problem via Continuous Optimization
 
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+This project, developed for the **Optimization for Data Science** course at the University of Padua, addresses the **Maximum Clique Problem (MCP)** using first-order optimization algorithms.
 
-An academic implementation and comparative analysis of a meta-heuristic algorithm (Simulated Annealing) and a greedy algorithm to solve the NP-hard Maximal Clique problem in a graph.
-
----
-
-### Table of Contents
-1.  [Project Overview](#project-overview-)
-2.  [The Maximum Clique Problem (Theoretical Background)](#the-maximum-clique-problem-theoretical-background-)
-3.  [Implemented Algorithms](#implemented-algorithms-)
-    * [Simulated Annealing](#simulated-annealing)
-    * [Greedy Algorithm](#greedy-algorithm)
-4.  [Repository Structure](#repository-structure-)
-5.  [Installation and Usage](#installation-and-usage-)
-    * [Prerequisites](#prerequisites)
-    * [Execution Guide](#execution-guide)
-6.  [Interpreting the Results](#interpreting-the-results-)
-7.  [Dependencies](#dependencies-)
-8.  [Authors](#authors-)
+The MCP is a well-known NP-hard problem that involves finding the largest complete subgraph (a clique) within a given undirected graph. To overcome the combinatorial nature of the problem, it has been reformulated as a continuous optimization problem.
 
 ---
 
-### Project Overview 🎯
+## 📖 Theoretical Approach and Formulation
 
-This project explores computational solutions to the **Maximum Clique problem**, a well-known NP-hard problem in graph theory. Given the computational infeasibility of finding an exact solution in polynomial time for large graphs, this work focuses on leveraging optimization algorithms to find high-quality approximate solutions.
+The approach is based on the Motzkin-Straus formulation, which links the clique problem to a quadratic program. To ensure that the local maxima of the objective function correspond to actual maximal cliques, a regularization term has been added.
 
-The primary algorithm implemented is **Simulated Annealing**, a powerful meta-heuristic technique inspired by the annealing process in metallurgy. It is designed to effectively traverse the solution space and escape local optima, making it well-suited for complex combinatorial problems.
+The goal is to solve the following optimization problem:
 
-To benchmark the performance of the Simulated Annealing approach, a baseline **Greedy Algorithm** is also implemented. This allows for a direct comparison between a probabilistic, explorative strategy and a fast, deterministic one. The project includes several graph instances in the `data` directory to test and compare these algorithms.
+$$
+\text{maximize} \quad f(x) := x^T A x + \Phi(x) \quad \text{subject to} \quad x \in \Delta
+$$
 
----
+where:
+-   **$A$** is the adjacency matrix of the graph.
+-   **$x$** is the vector of optimization variables.
+-   **$\Delta$** is the standard simplex: $\Delta := \{x \in \mathbb{R}^n \mid \sum x_i = 1, x_i \geq 0\}$.
+-   **$\Phi(x)$** is the regularization function.
 
-### The Maximum Clique Problem (Theoretical Background) 🧐
-
-In graph theory, an **undirected graph** `G` is defined by a set of vertices `V` and a set of edges `E` that connect pairs of vertices, denoted as `G = (V, E)`.
-
-A **clique** is a subset of vertices `C ⊆ V` where every two distinct vertices in `C` are adjacent. In other words, for every pair of vertices `u, v ∈ C` where `u ≠ v`, the edge `(u, v)` must exist in `E`. This means that a clique is a **complete subgraph** of `G`.
-
-The **Maximum Clique Problem** is the computational challenge of finding the clique with the largest possible number of vertices in a given graph `G`. This number is known as the **clique number**, denoted as `ω(G)`.
-
-**Key Characteristics:**
-- **NP-hard**: The problem is classified as NP-hard, meaning there is no known algorithm that can find the maximum clique in polynomial time for all graphs. As the size of the graph increases, the time required to find an exact solution grows exponentially. This is why heuristic and approximation algorithms are crucial for practical applications.
-- **Applications**: The problem has significant real-world applications, including:
-    - **Social Network Analysis**: Identifying tightly-knit communities or groups.
-    - **Bioinformatics**: Finding patterns in protein-protein interaction networks.
-    - **Computational Chemistry**: Analyzing molecular structures.
-    - **Finance**: Detecting clusters of correlated assets.
+Two different regularization functions have been implemented and compared:
+1.  **$L_2$ Regularization**: $\Phi_{l2}(x) = \frac{\alpha}{2} \|x\|_2^2$
+2.  **$L_0$ Approximation**: $\Phi_{l0}(x) = \alpha \sum_{i=1}^n (\exp(-\beta x_i) - 1)$
 
 ---
 
-### Implemented Algorithms ⚙️
+## 📂 Project Structure
 
-#### Simulated Annealing
-Simulated Annealing (SA) is a probabilistic meta-heuristic for finding a good approximation of the global optimum in a large search space. It is inspired by the physical process of annealing, where a material is heated and then slowly cooled to alter its physical properties, reducing defects and minimizing its internal energy.
+```
+.
+├── .gitignore
+├── README.md
+├── final_project.ipynb
+├── final_project_report.pdf
+├── requirements.txt
+└── results.csv
+```
 
-In the context of the Maximum Clique problem, the algorithm is adapted as follows:
-- **State**: A state `S` in the system is represented by a **candidate clique** `C`.
-- **Energy Function (`E(S)`):** The "energy" of a state must be defined such that its global minimum corresponds to the desired solution. Here, we define the energy as the negative cardinality of the clique: `E(C) = -|C|`. Minimizing this energy is equivalent to maximizing the clique's size.
-- **Neighborhood & Transitions**: The algorithm explores the solution space by transitioning from the current state (clique `C`) to a "neighboring" state. A neighboring state is generated by a small perturbation, such as randomly adding or removing a vertex to/from the current clique candidate.
-- **Acceptance Probability (Metropolis Criterion)**:
-    - If a move leads to a state with lower energy (a larger clique), it is **always accepted**.
-    - If a move leads to a state with higher energy (a smaller clique), it may still be accepted with a certain probability `P`. This probability is given by `P = exp(-ΔE / T)`, where `ΔE` is the change in energy and `T` is the current "temperature."
-- **Cooling Schedule**: The temperature `T` is a crucial parameter. It starts high, allowing the algorithm to accept "bad" moves frequently and thus explore the search space widely. As the algorithm progresses, `T` is gradually decreased according to a cooling schedule (e.g., `T_new = T_old * alpha`, where `alpha < 1`). As `T` approaches zero, the probability of accepting bad moves diminishes, causing the algorithm to converge towards a local (and hopefully global) minimum.
-
-This ability to accept non-improving solutions is what allows Simulated Annealing to escape local optima and find superior solutions compared to simple hill-climbing methods.
-
-#### Greedy Algorithm
-The implemented greedy algorithm serves as a fast, deterministic baseline. It constructs a clique using a simple, myopic heuristic:
-1.  Start with a random vertex and add it to the clique.
-2.  Iteratively scan all vertices not yet in the clique.
-3.  Add the vertex that is connected to *all* vertices currently in the clique and has the highest degree among such candidates.
-4.  Repeat until no more vertices can be added while maintaining the clique property.
-
-While very fast, this approach is highly susceptible to making locally optimal choices that do not lead to a globally optimal solution.
+-   **`final_project.ipynb`**: The Jupyter Notebook containing the full code implementation, experiments, and results visualization.
+-   **`final_project_report.pdf`**: The theoretical report that details the problem, algorithms, and analysis of the results.
+-   **`requirements.txt`**: The Python dependencies required to run the project.
+-   **`results.csv`**: The raw data obtained from the experiments.
 
 ---
 
-### Repository Structure 📂
+## ⚙️ Prerequisites and Installation
 
-The project is organized to ensure clarity and modularity:
-
-* `├──` **`/data`**: Contains `.dat` files defining the graphs for the algorithms to run on.
-* `├──` **`/src`**: Contains all source code.
-    * `├──` **`/algorithms`**: Contains separate implementations for `simulated_annealing.py` and `greedy.py`.
-    * `├──` `main.py`: The main entry point to run experiments.
-    * `├──` `graph.py`: A class for graph representation and management.
-    * `└──` `utils.py`: Utility functions (e.g., for plotting).
-* `├──` **`/results`**: The destination folder for plots generated during execution.
-* `├──` `README.md`: This documentation file.
-* `└──` `requirements.txt`: A list of Python dependencies.
-
----
-
-### Installation and Usage 🚀
-
-#### Prerequisites
-- Python 3.9 or higher
-
-#### Execution Guide
+Ensure you have **Python 3.x** installed.
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/your-username/find-a-maximal-clique-with-optimization-algorithm.git](https://github.com/your-username/find-a-maximal-clique-with-optimization-algorithm.git)
-    cd find-a-maximal-clique-with-optimization-algorithm
+    git clone [https://github.com/your-username/repository-name.git](https://github.com/your-username/repository-name.git)
+    cd repository-name
     ```
 
-2.  **Install dependencies:**
+2.  **Create and activate a virtual environment (recommended):**
+    ```bash
+    python -m venv venv
+    # On macOS/Linux:
+    source venv/bin/activate
+    # On Windows:
+    .\venv\Scripts\activate
+    ```
+
+3.  **Install the dependencies:**
     ```bash
     pip install -r requirements.txt
     ```
 
-3.  **Run the main script:**
-    Use `src/main.py` to launch an execution. You can specify the algorithm, the graph instance, and other optional parameters.
+---
 
-    **Command Syntax:**
+## 🚀 Usage
+
+The entire project can be executed through the Jupyter Notebook **`final_project.ipynb`**.
+
+1.  Start Jupyter Lab or Jupyter Notebook from the project's root directory:
     ```bash
-    python src/main.py -a <ALGORITHM> -g <GRAPH_NAME> [OPTIONAL_PARAMETERS]
+    jupyter lab
     ```
-
-    **Examples:**
-
-    * **Run Simulated Annealing on the `myciel_3.dat` graph:**
-        ```bash
-        python src/main.py -a sa -g myciel_3.dat
-        ```
-
-    * **Run the Greedy algorithm on the `p_hat300-1.dat` graph:**
-        ```bash
-        python src/main.py -a greedy -g p_hat300-1.dat
-        ```
-
-    * **Run Simulated Annealing with custom parameters:**
-        ```bash
-        python src/main.py -a sa -g myciel_3.dat -p 100 0.001 0.95 10
-        ```
-        (The parameters correspond to `initial_temp`, `min_temp`, `alpha`, and `num_iterations` respectively).
+2.  Open the `final_project.ipynb` file.
+3.  Run the cells in order to reproduce the entire workflow:
+    * Loading libraries and utility functions.
+    * Defining the algorithms and step-size strategies.
+    * Running experiments on benchmark graphs.
+    * Generating analysis tables and plots.
 
 ---
 
-### Interpreting the Results 📈
+## 🤖 Implemented Algorithms
 
-After each run, the script will print the following to the console:
-- The **size of the largest clique** found.
-- The **vertices** that form this clique.
-- The total **execution time**.
+Four first-order optimization algorithms were implemented, each tested with three different step-size strategies.
 
-For the Simulated Annealing algorithm, a **convergence plot** will also be generated and saved to the `/results` directory. This plot shows the size of the best-found clique at each iteration, which is useful for visualizing how the algorithm explores the solution space and converges towards a final solution.
+### Algorithms
+1.  **Projected Gradient Descent (PGD)**: Performs a gradient step followed by a projection onto the simplex.
+2.  **Frank-Wolfe (FW)**: A projection-free method that optimizes a linear approximation of the objective function.
+3.  **Pairwise Frank-Wolfe (PFW)**: A variant that moves "mass" between the best and worst vertices, accelerating convergence.
+4.  **Away-step Frank-Wolfe (AFW)**: Improves PFW by dynamically choosing between a standard (FW) direction and an "away" direction.
 
----
-
-### Dependencies 📦
-
-The required Python libraries are listed in the `requirements.txt` file:
-- `matplotlib`
-- `numpy`
-- `pandas`
-- `scipy`
+### Step-Size Strategies
+* **Optimal (Exact Line Search)**: Computes the optimal step-size at each iteration.
+* **Armijo**: A backtracking rule that ensures sufficient progress.
+* **Fixed**: Uses a constant, predefined step-size.
 
 ---
 
-### Authors ✍️
+## 📈 Results and Analysis
 
-* **[Author Name 1]** - [GitHub/LinkedIn Link]
-* **[Author Name 2]** - [GitHub/LinkedIn Link]
+The algorithms were evaluated on benchmark graphs from the **DIMACS challenge**. The analysis yielded the following insights:
+
+* **Best Performance**: The combination of **Projected Gradient Descent (PGD)** with **$L_0$ regularization** and a **fixed step-size** proved to be the most effective, finding the largest cliques on average.
+* **Impact of Regularization**: The $L_0$ regularization showed a clear superiority, better guiding the algorithms toward sparse solutions that represent cliques.
+* **Computational Efficiency**: Fixed step-size strategies were the fastest. Exact line search, while theoretically powerful, was too slow for practical use with PGD.
+* **Robustness**: The Frank-Wolfe algorithms (FW and AFW) proved to be more stable and less sensitive to the choice of step-size compared to PGD and PFW.
+
+In conclusion, the project highlighted the strong synergy between the PGD algorithm and a regularization function that accurately models the combinatorial nature of the problem, demonstrating the effectiveness of continuous optimization for solving the maximum clique problem.
