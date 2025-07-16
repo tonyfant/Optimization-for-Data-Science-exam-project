@@ -1,45 +1,167 @@
-# OPTIMIZATION_PROJECT
+# Finding a Maximal Clique with Optimization Algorithms
 
-## Overview
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-This project explores and implements advanced optimization techniques to solve complex real-world problems. The repository includes a suite of algorithms, methodologies, and experiments focused on achieving efficient and robust solutions. The main code and experiments are documented in `final_project.ipynb`.
+An academic implementation and comparative analysis of a meta-heuristic algorithm (Simulated Annealing) and a greedy algorithm to solve the NP-hard Maximal Clique problem in a graph.
 
-## Methodologies
+---
 
+### Table of Contents
+1.  [Project Overview](#project-overview-)
+2.  [The Maximum Clique Problem (Theoretical Background)](#the-maximum-clique-problem-theoretical-background-)
+3.  [Implemented Algorithms](#implemented-algorithms-)
+    * [Simulated Annealing](#simulated-annealing)
+    * [Greedy Algorithm](#greedy-algorithm)
+4.  [Repository Structure](#repository-structure-)
+5.  [Installation and Usage](#installation-and-usage-)
+    * [Prerequisites](#prerequisites)
+    * [Execution Guide](#execution-guide)
+6.  [Interpreting the Results](#interpreting-the-results-)
+7.  [Dependencies](#dependencies-)
+8.  [Authors](#authors-)
 
-- **Mathematical Modeling:** Problems are formulated using mathematical models to define constraints and objectives precisely.
-- **Linear Programming (LP):** Techniques such as the Simplex method are applied to solve problems with linear constraints and objectives.
-- **Nonlinear Programming (NLP):** Algorithms for handling nonlinear relationships are implemented for more complex scenarios.
-- **Metaheuristics:** Genetic Algorithms and Simulated Annealing are used for optimization problems where classical methods are insufficient or impractical.
-- **Gradient-Based Optimization:** Methods like Gradient Descent are employed for continuous optimization tasks.
-- **Constraint Handling:** Specialized approaches are used to manage equality and inequality constraints within optimization problems.
-- **Data Preprocessing and Analysis:** Input data is cleaned, normalized, and analyzed to ensure high-quality results.
-- **Simulation and Validation:** Solutions are validated through simulation to assess their performance under various scenarios.
-- **Visualization:** Results are visualized using plots and charts to facilitate analysis and interpretation.
+---
 
-## Features
+### Project Overview 🎯
 
-- Modular codebase for easy extension and experimentation
-- Well-documented code and notebooks for clarity
-- Visualization tools for analyzing optimization results
-- Benchmarking against standard datasets and test cases
+This project explores computational solutions to the **Maximum Clique problem**, a well-known NP-hard problem in graph theory. Given the computational infeasibility of finding an exact solution in polynomial time for large graphs, this work focuses on leveraging optimization algorithms to find high-quality approximate solutions.
 
-## Getting Started
+The primary algorithm implemented is **Simulated Annealing**, a powerful meta-heuristic technique inspired by the annealing process in metallurgy. It is designed to effectively traverse the solution space and escape local optima, making it well-suited for complex combinatorial problems.
 
-1. Clone the repository.
-2. Install required dependencies from `requirements.txt`.
-3. Open and run `final_project.ipynb` to explore the implemented methodologies and experiments.
+To benchmark the performance of the Simulated Annealing approach, a baseline **Greedy Algorithm** is also implemented. This allows for a direct comparison between a probabilistic, explorative strategy and a fast, deterministic one. The project includes several graph instances in the `data` directory to test and compare these algorithms.
 
-## Results
+---
 
-The project demonstrates improvements in solution quality and computational efficiency across multiple test cases. Comparative analyses in the notebook highlight the strengths and limitations of each methodology.
+### The Maximum Clique Problem (Theoretical Background) 🧐
 
-## Contributing
+In graph theory, an **undirected graph** `G` is defined by a set of vertices `V` and a set of edges `E` that connect pairs of vertices, denoted as `G = (V, E)`.
 
-Contributions are welcome! Please open issues or submit pull requests for enhancements or bug fixes.
+A **clique** is a subset of vertices `C ⊆ V` where every two distinct vertices in `C` are adjacent. In other words, for every pair of vertices `u, v ∈ C` where `u ≠ v`, the edge `(u, v)` must exist in `E`. This means that a clique is a **complete subgraph** of `G`.
 
-## License
+The **Maximum Clique Problem** is the computational challenge of finding the clique with the largest possible number of vertices in a given graph `G`. This number is known as the **clique number**, denoted as `ω(G)`.
 
-This project is licensed under the MIT License.
+**Key Characteristics:**
+- **NP-hard**: The problem is classified as NP-hard, meaning there is no known algorithm that can find the maximum clique in polynomial time for all graphs. As the size of the graph increases, the time required to find an exact solution grows exponentially. This is why heuristic and approximation algorithms are crucial for practical applications.
+- **Applications**: The problem has significant real-world applications, including:
+    - **Social Network Analysis**: Identifying tightly-knit communities or groups.
+    - **Bioinformatics**: Finding patterns in protein-protein interaction networks.
+    - **Computational Chemistry**: Analyzing molecular structures.
+    - **Finance**: Detecting clusters of correlated assets.
 
+---
 
+### Implemented Algorithms ⚙️
+
+#### Simulated Annealing
+Simulated Annealing (SA) is a probabilistic meta-heuristic for finding a good approximation of the global optimum in a large search space. It is inspired by the physical process of annealing, where a material is heated and then slowly cooled to alter its physical properties, reducing defects and minimizing its internal energy.
+
+In the context of the Maximum Clique problem, the algorithm is adapted as follows:
+- **State**: A state `S` in the system is represented by a **candidate clique** `C`.
+- **Energy Function (`E(S)`):** The "energy" of a state must be defined such that its global minimum corresponds to the desired solution. Here, we define the energy as the negative cardinality of the clique: `E(C) = -|C|`. Minimizing this energy is equivalent to maximizing the clique's size.
+- **Neighborhood & Transitions**: The algorithm explores the solution space by transitioning from the current state (clique `C`) to a "neighboring" state. A neighboring state is generated by a small perturbation, such as randomly adding or removing a vertex to/from the current clique candidate.
+- **Acceptance Probability (Metropolis Criterion)**:
+    - If a move leads to a state with lower energy (a larger clique), it is **always accepted**.
+    - If a move leads to a state with higher energy (a smaller clique), it may still be accepted with a certain probability `P`. This probability is given by `P = exp(-ΔE / T)`, where `ΔE` is the change in energy and `T` is the current "temperature."
+- **Cooling Schedule**: The temperature `T` is a crucial parameter. It starts high, allowing the algorithm to accept "bad" moves frequently and thus explore the search space widely. As the algorithm progresses, `T` is gradually decreased according to a cooling schedule (e.g., `T_new = T_old * alpha`, where `alpha < 1`). As `T` approaches zero, the probability of accepting bad moves diminishes, causing the algorithm to converge towards a local (and hopefully global) minimum.
+
+This ability to accept non-improving solutions is what allows Simulated Annealing to escape local optima and find superior solutions compared to simple hill-climbing methods.
+
+#### Greedy Algorithm
+The implemented greedy algorithm serves as a fast, deterministic baseline. It constructs a clique using a simple, myopic heuristic:
+1.  Start with a random vertex and add it to the clique.
+2.  Iteratively scan all vertices not yet in the clique.
+3.  Add the vertex that is connected to *all* vertices currently in the clique and has the highest degree among such candidates.
+4.  Repeat until no more vertices can be added while maintaining the clique property.
+
+While very fast, this approach is highly susceptible to making locally optimal choices that do not lead to a globally optimal solution.
+
+---
+
+### Repository Structure 📂
+
+The project is organized to ensure clarity and modularity:
+
+* `├──` **`/data`**: Contains `.dat` files defining the graphs for the algorithms to run on.
+* `├──` **`/src`**: Contains all source code.
+    * `├──` **`/algorithms`**: Contains separate implementations for `simulated_annealing.py` and `greedy.py`.
+    * `├──` `main.py`: The main entry point to run experiments.
+    * `├──` `graph.py`: A class for graph representation and management.
+    * `└──` `utils.py`: Utility functions (e.g., for plotting).
+* `├──` **`/results`**: The destination folder for plots generated during execution.
+* `├──` `README.md`: This documentation file.
+* `└──` `requirements.txt`: A list of Python dependencies.
+
+---
+
+### Installation and Usage 🚀
+
+#### Prerequisites
+- Python 3.9 or higher
+
+#### Execution Guide
+
+1.  **Clone the repository:**
+    ```bash
+    git clone [https://github.com/your-username/find-a-maximal-clique-with-optimization-algorithm.git](https://github.com/your-username/find-a-maximal-clique-with-optimization-algorithm.git)
+    cd find-a-maximal-clique-with-optimization-algorithm
+    ```
+
+2.  **Install dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+3.  **Run the main script:**
+    Use `src/main.py` to launch an execution. You can specify the algorithm, the graph instance, and other optional parameters.
+
+    **Command Syntax:**
+    ```bash
+    python src/main.py -a <ALGORITHM> -g <GRAPH_NAME> [OPTIONAL_PARAMETERS]
+    ```
+
+    **Examples:**
+
+    * **Run Simulated Annealing on the `myciel_3.dat` graph:**
+        ```bash
+        python src/main.py -a sa -g myciel_3.dat
+        ```
+
+    * **Run the Greedy algorithm on the `p_hat300-1.dat` graph:**
+        ```bash
+        python src/main.py -a greedy -g p_hat300-1.dat
+        ```
+
+    * **Run Simulated Annealing with custom parameters:**
+        ```bash
+        python src/main.py -a sa -g myciel_3.dat -p 100 0.001 0.95 10
+        ```
+        (The parameters correspond to `initial_temp`, `min_temp`, `alpha`, and `num_iterations` respectively).
+
+---
+
+### Interpreting the Results 📈
+
+After each run, the script will print the following to the console:
+- The **size of the largest clique** found.
+- The **vertices** that form this clique.
+- The total **execution time**.
+
+For the Simulated Annealing algorithm, a **convergence plot** will also be generated and saved to the `/results` directory. This plot shows the size of the best-found clique at each iteration, which is useful for visualizing how the algorithm explores the solution space and converges towards a final solution.
+
+---
+
+### Dependencies 📦
+
+The required Python libraries are listed in the `requirements.txt` file:
+- `matplotlib`
+- `numpy`
+- `pandas`
+- `scipy`
+
+---
+
+### Authors ✍️
+
+* **[Author Name 1]** - [GitHub/LinkedIn Link]
+* **[Author Name 2]** - [GitHub/LinkedIn Link]
