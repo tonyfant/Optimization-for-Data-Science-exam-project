@@ -53,8 +53,8 @@ Ensure you have **Python 3.x** installed.
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/your-username/repository-name.git](https://github.com/your-username/repository-name.git)
-    cd repository-name
+    git clone https://github.com/your-username/repository-name.git
+    cd Find-a-maximal-clique-with-optimization-algorithm
     ```
 
 2.  **Create and activate a virtual environment (recommended):**
