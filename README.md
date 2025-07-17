@@ -35,13 +35,11 @@ Two different regularization functions have been implemented and compared:
 ├── .gitignore
 ├── README.md
 ├── final_project.ipynb
-├── final_project_report.pdf
 ├── requirements.txt
 └── results.csv
 ```
 
 -   **`final_project.ipynb`**: The Jupyter Notebook containing the full code implementation, experiments, and results visualization.
--   **`final_project_report.pdf`**: The theoretical report that details the problem, algorithms, and analysis of the results.
 -   **`requirements.txt`**: The Python dependencies required to run the project.
 -   **`results.csv`**: The raw data obtained from the experiments.
 
